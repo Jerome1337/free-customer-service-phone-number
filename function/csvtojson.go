@@ -1,19 +1,20 @@
-package main
+package function
 
 import (
 	"encoding/csv"
 	"encoding/json"
-	"errors"
-	"log"
-	"os"
+	"fmt"
+	"net/http"
 	"strconv"
 )
 
+// Number represent a chargeable or free phone number with its additional information
 type Number struct {
 	Number                int    `json:"number"`
 	AdditionalInformation string `json:"additional_information,omitempty"`
 }
 
+// Service represent a company service with all the chargeable and free phone numbers
 type Service struct {
 	Name              string   `json:"name"`
 	ChargeableNumbers []Number `json:"chargeable_numbers"`
@@ -89,42 +90,29 @@ func formatServicesNumbers(data [][]string) []Service {
 	return services
 }
 
-func main() {
-	if len(os.Args) == 1 {
-		log.Fatalln("File path not given")
-	}
-
-	filePath := os.Args[1]
-
-	f, err := os.Open(filePath)
+// FormatJSON gets the CSV file from GitHub then return a the JSON representation byte slice
+func FormatJSON() ([]byte, error) {
+	response, err := http.Get("https://raw.githubusercontent.com/Jerome1337/free-customer-service-phone-number/main/data-files/phones-numbers.csv")
 	if err != nil {
-			log.Fatalf("Failed to %s", err.Error())
+		return nil, fmt.Errorf("Failed to get CSV file", err)
 	}
 
-	defer f.Close()
+	defer response.Body.Close()
 
-	csvReader := csv.NewReader(f)
+	csvReader := csv.NewReader(response.Body)
 	csvReader.Comma = ';'
 
 	data, err := csvReader.ReadAll()
 	if err != nil {
-			log.Fatalln("Failed to read CSV file", err)
+		return nil, fmt.Errorf("Failed to read CSV content", err)
 	}
 
 	services := formatServicesNumbers(data)
 
-	jsonData, err := json.MarshalIndent(services, "", "  ")
+	jsonData, err := json.Marshal(services)
 	if err != nil {
-			log.Fatalln("Failed to marshal json value", err)
+		return nil, fmt.Errorf("Failed to marshal json value", err)
 	}
 
-	if _, err := os.Stat("./dist"); errors.Is(err, os.ErrNotExist) {
-		os.Mkdir("./dist", os.ModePerm)
-	}
-
-	if err := os.WriteFile("./dist/formattedData.json", jsonData, 0777); err != nil {
-		log.Fatalf("Failed to %s", err.Error())
-	}
-
-	log.Printf("Successfully formatted CSV file to JSON")
+	return jsonData, nil
 }

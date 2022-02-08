@@ -1,0 +1,30 @@
+name: Code Quality
+
+on: [push]
+
+jobs:
+  golint:
+    runs-on: ubuntu-latest
+    name: Lint Golang code
+    steps:
+      - uses: actions/checkout@v2
+      - name: lint
+        id: golint
+        uses: Jerome1337/golint-action@v1.0.2
+        with:
+          golint-path: './function/...'
+      - name: Get Golint output
+        run: echo "${{ steps.golint.outputs.golint-output }}"
+
+  gofmt:
+    runs-on: ubuntu-latest
+    name: Check Golang code formatting
+    steps:
+      - uses: actions/checkout@v2
+      - name: fmt
+        id: gofmt
+        uses: Jerome1337/gofmt-action@v1.0.4
+        with:
+          gofmt-path: './function/...'
+      - name: Get Gofmt output
+        run: echo "${{ steps.gofmt.outputs.gofmt-output }}"
