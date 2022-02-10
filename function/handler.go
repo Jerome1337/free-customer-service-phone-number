@@ -9,7 +9,7 @@ import (
 func Handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	data, err := FormatJSON()
+	data, err := formatJSON()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
