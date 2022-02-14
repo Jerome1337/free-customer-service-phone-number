@@ -1,0 +1,5 @@
+craco.config.js
+dist/
+build/
+public/
+scripts/
